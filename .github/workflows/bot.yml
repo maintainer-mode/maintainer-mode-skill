@@ -111,7 +111,7 @@ jobs:
                - "summary": a markdown summary of what you did or why you rejected/escalated
                Example: {"decision": "accepted", "summary": "Updated lodash from 4.17.20 to 4.17.21 ..."}
                Example: {"decision": "rejected", "summary": "This request adds a new API endpoint, which is not allowed ..."}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.BOT_PAT }}
 
       - name: Handle result
