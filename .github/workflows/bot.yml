@@ -76,20 +76,21 @@ jobs:
           git checkout -b "${{ steps.fork.outputs.branch }}"
 
       - name: Load maintainer-mode skill
-        uses: actions/checkout@v6
-        with:
-          path: _skill_repo
-
-      - name: Install skill files
         run: |
-          cp -r _skill_repo/.agent . 2>/dev/null || true
-          rm -rf _skill_repo
+          # Clone the skill repo to a temp directory
+          SKILL_DIR="${RUNNER_TEMP}/_skill_repo"
+          gh repo clone maintainer-mode/maintainer-mode-skill "$SKILL_DIR" --depth=1
+          # Copy skill to home directory (outside workspace to avoid git conflicts)
+          mkdir -p ~/.agent
+          cp -r "$SKILL_DIR/.agent"/* ~/.agent/ 2>/dev/null || true
+          rm -rf "$SKILL_DIR"
 
       - name: Process command with Claude
         uses: anthropics/claude-code-action@v1
         with:
           prompt: |
             You are a maintainer bot operating under the maintainer-mode skill.
+            The maintainer-mode skill is available in ~/.agent directory.
             Apply all rules from the maintainer-mode skill for every change.
 
             Repository: ${{ inputs.source_repo }}
@@ -113,6 +114,7 @@ jobs:
                Example: {"decision": "rejected", "summary": "This request adds a new API endpoint, which is not allowed ..."}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.BOT_PAT }}
+          claude_args: "--allowedTools 'Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*),Bash(gh:*)'"
 
       - name: Handle result
         run: |
